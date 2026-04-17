@@ -54,8 +54,19 @@ func (s *stubDataSource) GetSessionDetail(_ string) (*api.SessionDetailResponse,
 func (s *stubDataSource) GetActivities(_ string, _ *string) (*api.ActivityListResponse, error) {
 	return &api.ActivityListResponse{}, nil
 }
-func (s *stubDataSource) StopSession(_ string) error   { return nil }
-func (s *stubDataSource) SendPrompt(_, _ string) error { return nil }
+
+func (s *stubDataSource) StopSession(_ string) (*api.StopSessionResponse, error) {
+	return nil, nil
+}
+
+func (s *stubDataSource) ChatSession(_ string, _ api.ChatSessionRequest) (*api.ChatSessionResponse, error) {
+	return nil, nil
+}
+
+func (s *stubDataSource) ReconnectSession(_ string, _ api.ReconnectSessionRequest) (*api.ReconnectSessionResponse, error) {
+	return nil, nil
+}
+
 func (s *stubDataSource) GetCostReport() (*api.CostReportResponse, error) {
 	return &api.CostReportResponse{}, nil
 }
