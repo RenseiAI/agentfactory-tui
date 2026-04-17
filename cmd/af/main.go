@@ -130,8 +130,11 @@ func newRootCmd() (*cobra.Command, *rootFlags) {
 			}
 
 			if !cmd.Flags().Changed("api-key") {
-				if k := os.Getenv("WORKER_API_KEY"); k != "" {
-					flags.apiKey = k
+				switch {
+				case os.Getenv("WORKER_API_KEY") != "":
+					flags.apiKey = os.Getenv("WORKER_API_KEY")
+				case os.Getenv("RENSEI_API_TOKEN") != "":
+					flags.apiKey = os.Getenv("RENSEI_API_TOKEN")
 				}
 			}
 
