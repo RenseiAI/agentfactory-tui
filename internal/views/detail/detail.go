@@ -30,11 +30,10 @@ type Model struct {
 	logViewer      *widget.LogViewer
 	activityCursor *string
 	// UI state
-	showHelp   bool
-	stopDialog *widget.Dialog
-	promptMode bool
-	promptText string
-	notifStack notification.Stack
+	showHelp    bool
+	stopDialog  *widget.Dialog
+	promptInput *widget.TextInput
+	notifStack  notification.Stack
 }
 
 // New creates a new detail model.
@@ -55,8 +54,7 @@ func (m *Model) SetSession(id string) {
 	m.logViewer = newActivityLogViewer()
 	m.showHelp = false
 	m.stopDialog = nil
-	m.promptMode = false
-	m.promptText = ""
+	m.promptInput = nil
 }
 
 // SetSize updates the available render size.
@@ -227,26 +225,23 @@ func (m *Model) handleKeyPress(msg tea.KeyPressMsg) tea.Cmd {
 	}
 
 	// Prompt input mode
-	if m.promptMode {
+	if m.promptInput != nil {
 		switch key {
 		case "esc":
-			m.promptMode = false
-			m.promptText = ""
+			m.promptInput = nil
+			m.logViewer.Focus()
 		case "enter":
-			if m.promptText != "" {
-				text := m.promptText
-				m.promptMode = false
-				m.promptText = ""
+			if text := m.promptInput.Value(); text != "" {
+				m.promptInput = nil
+				m.logViewer.Focus()
 				return m.sendPromptCmd(text)
 			}
-		case "backspace":
-			if len(m.promptText) > 0 {
-				m.promptText = m.promptText[:len(m.promptText)-1]
-			}
 		default:
-			if len(key) == 1 || key == " " {
-				m.promptText += key
+			next, cmd := m.promptInput.Update(msg)
+			if ti, ok := next.(widget.TextInput); ok {
+				m.promptInput = &ti
 			}
+			return cmd
 		}
 		return nil
 	}
@@ -273,8 +268,13 @@ func (m *Model) handleKeyPress(msg tea.KeyPressMsg) tea.Cmd {
 		}
 	case "p":
 		if !m.isTerminal() {
-			m.promptMode = true
-			m.promptText = ""
+			ti := widget.NewTextInput(
+				widget.WithPlaceholder("Send prompt to agent..."),
+			)
+			ti.SetSize(m.width-4, 0)
+			ti.Focus()
+			m.promptInput = &ti
+			m.logViewer.Blur()
 		}
 	case "?":
 		m.showHelp = true
@@ -327,6 +327,9 @@ func (m *Model) Render() string {
 	// Calculate viewport height
 	headerHeight := strings.Count(header, "\n") + 1
 	helpHeight := 1
+	if m.promptInput != nil {
+		helpHeight = 3 // TextInput with border takes 3 rows
+	}
 	viewportHeight := m.height - headerHeight - helpHeight
 	if viewportHeight < 3 {
 		viewportHeight = 3
@@ -413,11 +416,8 @@ func (m *Model) renderTitleBar() string {
 }
 
 func (m *Model) renderBottomBar() string {
-	if m.promptMode {
-		prompt := theme.HelpKey().Render("> ") +
-			lipgloss.NewStyle().Foreground(theme.TextPrimary).Render(m.promptText) +
-			theme.Dimmed().Render("\u2588") // cursor block
-		return theme.HelpBar().Width(m.width).Render(prompt)
+	if m.promptInput != nil {
+		return m.promptInput.View().Content
 	}
 
 	pairs := []struct{ key, desc string }{
