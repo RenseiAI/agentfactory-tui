@@ -5,6 +5,7 @@ go 1.25.9
 require (
 	charm.land/bubbletea/v2 v2.0.2
 	charm.land/lipgloss/v2 v2.0.2
+	github.com/RenseiAI/tui-components v0.1.0
 	github.com/joho/godotenv v1.5.1
 	github.com/sahilm/fuzzy v0.1.1
 	github.com/spf13/cobra v1.10.2

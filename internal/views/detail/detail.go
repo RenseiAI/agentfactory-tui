@@ -7,7 +7,7 @@ import (
 	tea "charm.land/bubbletea/v2"
 	"charm.land/lipgloss/v2"
 	"github.com/RenseiAI/agentfactory-tui/internal/api"
-	"github.com/RenseiAI/agentfactory-tui/internal/theme"
+	"github.com/RenseiAI/tui-components/theme"
 )
 
 // NavigateBackMsg is sent when the user wants to go back to the dashboard.
@@ -328,7 +328,7 @@ func (m *Model) renderTitleBar() string {
 	}
 
 	s := *m.session
-	ss := theme.GetStatusStyle(s.Status)
+	ss := theme.GetStatusStyle(string(s.Status))
 
 	symbol := lipgloss.NewStyle().Foreground(ss.Color).Render(ss.Symbol)
 	identifier := lipgloss.NewStyle().Foreground(theme.TextPrimary).Bold(true).Render(s.Identifier)
