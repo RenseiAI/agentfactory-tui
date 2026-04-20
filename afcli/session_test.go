@@ -28,7 +28,7 @@ func newTestSessionCmdWithProject(ds func() afclient.DataSource, projectFunc fun
 	return cmd, buf
 }
 
-func TestSessionParentLists4Subcommands(t *testing.T) {
+func TestSessionParentListsAllSubcommands(t *testing.T) {
 	t.Parallel()
 
 	mock := afclient.NewMockClient()
@@ -38,7 +38,7 @@ func TestSessionParentLists4Subcommands(t *testing.T) {
 		t.Fatalf("execute: %v", err)
 	}
 	out := buf.String()
-	for _, sub := range []string{"list", "show", "stop", "prompt"} {
+	for _, sub := range []string{"list", "show", "stop", "prompt", "stream"} {
 		if !strings.Contains(out, sub) {
 			t.Errorf("session --help missing %q subcommand; got:\n%s", sub, out)
 		}

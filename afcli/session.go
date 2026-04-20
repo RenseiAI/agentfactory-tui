@@ -47,6 +47,7 @@ func newSessionCmd(ds func() afclient.DataSource, projectFunc func() string) *co
 	cmd.AddCommand(showSub)
 	cmd.AddCommand(stopSub)
 	cmd.AddCommand(promptSub)
+	cmd.AddCommand(newSessionStreamCmd(ds))
 
 	return cmd
 }
