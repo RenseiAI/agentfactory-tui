@@ -1,0 +1,58 @@
+//line /Users/markkropf/Developer/RenseiAi-Org/agentfactory-tui.wt/REN-74-QA/afcli/agent_stop.go:1:1
+package afcli
+
+import (
+	"encoding/json"
+	"errors"
+	"fmt"
+
+	"github.com/spf13/cobra"
+
+	"github.com/RenseiAI/agentfactory-tui/afclient"
+)
+
+// newAgentStopCmd constructs the `agent stop <session-id>` subcommand.
+// It posts to /api/public/sessions/:id/stop via DataSource.StopSession and
+// renders either a one-line confirmation (default) or indented JSON (--json).
+func newAgentStopCmd(ds func() afclient.DataSource) *cobra.Command {goCover_6f3409cb46e8__15[0] = 11 ; goCover_6f3409cb46e8__15[1] = goCover_6f3409cb46e8_P ; goCover_6f3409cb46e8__15[2] = 15 ; goCover_6f3409cb46e8__15[3] = 1;
+	var jsonMode bool
+
+	cmd := &cobra.Command{
+		Use:          "stop <session-id>",
+		Short:        "Stop a running agent session",
+		Long:         "Stop a running agent session by ID. The coordinator transitions the session to the stopped state and returns the status transition.",
+		Args:         cobra.ExactArgs(1),
+		SilenceUsage: true,
+		RunE: func(cmd *cobra.Command, args []string) error {goCover_6f3409cb46e8__15[5] = 1;
+			id := args[0]
+
+			client := ds()
+
+			resp, err := client.StopSession(id)
+			if err != nil {goCover_6f3409cb46e8__15[8] = 1;
+				if errors.Is(err, afclient.ErrNotFound) {goCover_6f3409cb46e8__15[10] = 1;
+					return fmt.Errorf("stop agent %s: session not found: %w", id, err)
+				}
+				goCover_6f3409cb46e8__15[9] = 1;return fmt.Errorf("stop agent %s: %w", id, err)
+			}
+
+			goCover_6f3409cb46e8__15[6] = 1;out := cmd.OutOrStdout()
+
+			if jsonMode {goCover_6f3409cb46e8__15[11] = 1;
+				enc := json.NewEncoder(out)
+				enc.SetIndent("", "  ")
+				if err := enc.Encode(resp); err != nil {goCover_6f3409cb46e8__15[13] = 1;
+					return fmt.Errorf("encode stop response: %w", err)
+				}
+				goCover_6f3409cb46e8__15[12] = 1;return nil
+			}
+
+			goCover_6f3409cb46e8__15[7] = 1;_, _ = fmt.Fprintf(out, "Stopped %s (%s → %s)\n", resp.SessionID, resp.PreviousStatus, resp.NewStatus)
+			return nil
+		},
+	}
+
+	goCover_6f3409cb46e8__15[4] = 1;cmd.Flags().BoolVar(&jsonMode, "json", false, "Output raw JSON (indented)")
+
+	return cmd
+}

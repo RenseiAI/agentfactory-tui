@@ -1,0 +1,92 @@
+//line /Users/markkropf/Developer/RenseiAi-Org/agentfactory-tui.wt/REN-74-QA/afcli/agent_reconnect.go:1:1
+package afcli
+
+import (
+	"encoding/json"
+	"errors"
+	"fmt"
+	"strings"
+
+	"github.com/spf13/cobra"
+
+	"github.com/RenseiAI/agentfactory-tui/afclient"
+)
+
+// newAgentReconnectCmd constructs the `agent reconnect <session-id>` subcommand.
+// It resumes an orphaned agent session and reports the current status plus the
+// number of missed activity events, or emits the raw response in --json mode.
+func newAgentReconnectCmd(ds func() afclient.DataSource) *cobra.Command {goCover_6f3409cb46e8__7[0] = 19 ; goCover_6f3409cb46e8__7[1] = goCover_6f3409cb46e8_P ; goCover_6f3409cb46e8__7[2] = 7 ; goCover_6f3409cb46e8__7[3] = 1;
+	var (
+		cursor      string
+		lastEventID string
+		jsonMode    bool
+	)
+
+	cmd := &cobra.Command{
+		Use:          "reconnect <session-id>",
+		Short:        "Reconnect to an agent session",
+		Long:         "Reconnect to an agent session by ID and report the current session status plus any missed activity events.",
+		Args:         cobra.ExactArgs(1),
+		SilenceUsage: true,
+		RunE: func(cmd *cobra.Command, args []string) error {goCover_6f3409cb46e8__7[5] = 1;
+			id := strings.TrimSpace(args[0])
+			if id == "" {goCover_6f3409cb46e8__7[13] = 1;
+				return errors.New("session id must not be empty")
+			}
+
+			goCover_6f3409cb46e8__7[6] = 1;req := afclient.ReconnectSessionRequest{}
+			if cmd.Flags().Changed("cursor") {goCover_6f3409cb46e8__7[14] = 1;
+				req.Cursor = &cursor
+			}
+			goCover_6f3409cb46e8__7[7] = 1;if cmd.Flags().Changed("last-event-id") {goCover_6f3409cb46e8__7[15] = 1;
+				req.LastEventID = &lastEventID
+			}
+
+			goCover_6f3409cb46e8__7[8] = 1;resp, err := ds().ReconnectSession(id, req)
+			if err != nil {goCover_6f3409cb46e8__7[16] = 1;
+				return fmt.Errorf("reconnect session: %w", err)
+			}
+
+			goCover_6f3409cb46e8__7[9] = 1;out := cmd.OutOrStdout()
+			if jsonMode {goCover_6f3409cb46e8__7[17] = 1;
+				enc := json.NewEncoder(out)
+				enc.SetIndent("", "  ")
+				if err := enc.Encode(resp); err != nil {goCover_6f3409cb46e8__7[19] = 1;
+					return fmt.Errorf("encode reconnect response: %w", err)
+				}
+				goCover_6f3409cb46e8__7[18] = 1;return nil
+			}
+
+			goCover_6f3409cb46e8__7[10] = 1;verb := "reconnected to"
+			if !resp.Reconnected {goCover_6f3409cb46e8__7[20] = 1;
+				verb = "reconnect declined for"
+			}
+			goCover_6f3409cb46e8__7[11] = 1;message := fmt.Sprintf("%s %s (status: %s, missed: %d %s)",
+				verb,
+				resp.SessionID,
+				resp.SessionStatus,
+				resp.MissedEvents,
+				pluralizeEvents(resp.MissedEvents),
+			)
+			if !resp.Reconnected {goCover_6f3409cb46e8__7[21] = 1;
+				return errors.New(message)
+			}
+
+			goCover_6f3409cb46e8__7[12] = 1;_, _ = fmt.Fprintln(out, message)
+			return nil
+		},
+	}
+
+	goCover_6f3409cb46e8__7[4] = 1;cmd.Flags().StringVar(&cursor, "cursor", "", "Resume from a coordinator activity cursor")
+	cmd.Flags().StringVar(&lastEventID, "last-event-id", "", "Resume after the specified activity event ID")
+	cmd.Flags().BoolVar(&jsonMode, "json", false, "Output raw JSON (indented)")
+
+	return cmd
+}
+
+func pluralizeEvents(n int) string {goCover_6f3409cb46e8__8[0] = 3 ; goCover_6f3409cb46e8__8[1] = goCover_6f3409cb46e8_P ; goCover_6f3409cb46e8__8[2] = 8 ; goCover_6f3409cb46e8__8[3] = 1;
+	if n == 1 {goCover_6f3409cb46e8__8[5] = 1;
+		return "event"
+	}
+	goCover_6f3409cb46e8__8[4] = 1;return "events"
+}

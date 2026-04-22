@@ -1,0 +1,63 @@
+//line /Users/markkropf/Developer/RenseiAi-Org/agentfactory-tui.wt/REN-74-QA/afcli/fleet_status.go:1:1
+package afcli
+
+import (
+	"fmt"
+	"io"
+	"os"
+	"syscall"
+	"text/tabwriter"
+
+	"github.com/spf13/cobra"
+
+	"github.com/RenseiAI/agentfactory-tui/worker"
+)
+
+// newFleetStatusCmd constructs the `fleet status` subcommand. It reads
+// the fleet PID file and reports a simple running/dead table by probing
+// each recorded PID with Signal(0).
+func newFleetStatusCmd() *cobra.Command {goCover_6f3409cb46e8__24[0] = 7 ; goCover_6f3409cb46e8__24[1] = goCover_6f3409cb46e8_P ; goCover_6f3409cb46e8__24[2] = 24 ; goCover_6f3409cb46e8__24[3] = 1;
+	cmd := &cobra.Command{
+		Use:          "status",
+		Short:        "Report the liveness of each fleet worker",
+		Long:         "Read the fleet PID file and probe each worker with Signal(0) to determine whether it is running or dead. A dead entry does not affect the exit code.",
+		SilenceUsage: true,
+		RunE: func(cmd *cobra.Command, _ []string) error {goCover_6f3409cb46e8__24[5] = 1;
+			pids, err := worker.ReadFleetPIDs()
+			if err != nil {goCover_6f3409cb46e8__24[8] = 1;
+				return fmt.Errorf("fleet status: %w", err)
+			}
+			goCover_6f3409cb46e8__24[6] = 1;out := cmd.OutOrStdout()
+			if len(pids) == 0 {goCover_6f3409cb46e8__24[9] = 1;
+				_, _ = fmt.Fprintln(out, "Fleet is not running")
+				return nil
+			}
+			goCover_6f3409cb46e8__24[7] = 1;return writeFleetStatusTable(out, pids)
+		},
+	}
+	goCover_6f3409cb46e8__24[4] = 1;return cmd
+}
+
+// writeFleetStatusTable renders a tab-aligned PID | STATE table to w.
+// STATE is "running" if Signal(0) succeeds; "dead" otherwise.
+func writeFleetStatusTable(w io.Writer, pids []int) error {goCover_6f3409cb46e8__25[0] = 11 ; goCover_6f3409cb46e8__25[1] = goCover_6f3409cb46e8_P ; goCover_6f3409cb46e8__25[2] = 25 ; goCover_6f3409cb46e8__25[3] = 1;
+	tw := tabwriter.NewWriter(w, 0, 0, 2, ' ', 0)
+	if _, err := fmt.Fprintln(tw, "PID\tSTATE"); err != nil {goCover_6f3409cb46e8__25[7] = 1;
+		return fmt.Errorf("write header: %w", err)
+	}
+	goCover_6f3409cb46e8__25[4] = 1;for _, pid := range pids {goCover_6f3409cb46e8__25[8] = 1;
+		state := "dead"
+		if proc, err := os.FindProcess(pid); err == nil {goCover_6f3409cb46e8__25[10] = 1;
+			if sigErr := proc.Signal(syscall.Signal(0)); sigErr == nil {goCover_6f3409cb46e8__25[11] = 1;
+				state = "running"
+			}
+		}
+		goCover_6f3409cb46e8__25[9] = 1;if _, err := fmt.Fprintf(tw, "%d\t%s\n", pid, state); err != nil {goCover_6f3409cb46e8__25[12] = 1;
+			return fmt.Errorf("write row: %w", err)
+		}
+	}
+	goCover_6f3409cb46e8__25[5] = 1;if err := tw.Flush(); err != nil {goCover_6f3409cb46e8__25[13] = 1;
+		return fmt.Errorf("flush table: %w", err)
+	}
+	goCover_6f3409cb46e8__25[6] = 1;return nil
+}

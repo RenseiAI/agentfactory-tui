@@ -1,0 +1,75 @@
+//line /Users/markkropf/Developer/RenseiAi-Org/agentfactory-tui.wt/REN-74-QA/afcli/status.go:1:1
+package afcli
+
+import (
+	"encoding/json"
+	"fmt"
+	"os"
+	"time"
+
+	"github.com/spf13/cobra"
+
+	"github.com/RenseiAI/agentfactory-tui/afclient"
+	"github.com/RenseiAI/agentfactory-tui/internal/inline"
+)
+
+// newStatusCmd constructs the `status` subcommand. The ds function
+// returns the DataSource to use for API calls.
+func newStatusCmd(ds func() afclient.DataSource) *cobra.Command {goCover_6f3409cb46e8__44[0] = 17 ; goCover_6f3409cb46e8__44[1] = goCover_6f3409cb46e8_P ; goCover_6f3409cb46e8__44[2] = 44 ; goCover_6f3409cb46e8__44[3] = 1;
+	var (
+		jsonMode bool
+		watch    bool
+		interval string
+	)
+
+	cmd := &cobra.Command{
+		Use:          "status",
+		Short:        "Show a one-line fleet summary",
+		Long:         "Print a concise fleet status summary. Use --json for raw stats, --watch for auto-refresh.",
+		SilenceUsage: true,
+		RunE: func(_ *cobra.Command, _ []string) error {goCover_6f3409cb46e8__44[5] = 1;
+			client := ds()
+
+			// JSON mode (non-watch): fetch and print stats as indented JSON.
+			if jsonMode && !watch {goCover_6f3409cb46e8__44[9] = 1;
+				stats, err := client.GetStats()
+				if err != nil {goCover_6f3409cb46e8__44[12] = 1;
+					return fmt.Errorf("get stats: %w", err)
+				}
+				goCover_6f3409cb46e8__44[10] = 1;enc := json.NewEncoder(os.Stdout)
+				enc.SetIndent("", "  ")
+				if err := enc.Encode(stats); err != nil {goCover_6f3409cb46e8__44[13] = 1;
+					return fmt.Errorf("encode stats: %w", err)
+				}
+				goCover_6f3409cb46e8__44[11] = 1;return nil
+			}
+
+			// Watch mode (with or without --json).
+			goCover_6f3409cb46e8__44[6] = 1;if watch {goCover_6f3409cb46e8__44[14] = 1;
+				dur, err := time.ParseDuration(interval)
+				if err != nil {goCover_6f3409cb46e8__44[17] = 1;
+					return fmt.Errorf("invalid interval %q: %w", interval, err)
+				}
+				goCover_6f3409cb46e8__44[15] = 1;if err := inline.RunWatch(client, inline.WatchConfig{
+					Interval: dur,
+					JSON:     jsonMode,
+				}); err != nil {goCover_6f3409cb46e8__44[18] = 1;
+					return fmt.Errorf("run watch: %w", err)
+				}
+				goCover_6f3409cb46e8__44[16] = 1;return nil
+			}
+
+			// Default: one-line human-readable summary.
+			goCover_6f3409cb46e8__44[7] = 1;if err := inline.PrintStatus(client); err != nil {goCover_6f3409cb46e8__44[19] = 1;
+				return fmt.Errorf("print status: %w", err)
+			}
+			goCover_6f3409cb46e8__44[8] = 1;return nil
+		},
+	}
+
+	goCover_6f3409cb46e8__44[4] = 1;cmd.Flags().BoolVar(&jsonMode, "json", false, "Output raw JSON stats")
+	cmd.Flags().BoolVar(&watch, "watch", false, "Auto-refresh mode")
+	cmd.Flags().StringVar(&interval, "interval", "3s", "Watch refresh interval")
+
+	return cmd
+}

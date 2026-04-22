@@ -1,0 +1,51 @@
+//line /Users/markkropf/Developer/RenseiAi-Org/agentfactory-tui.wt/REN-74-QA/afcli/dashboard.go:1:1
+package afcli
+
+import (
+	"fmt"
+	"io"
+	"log/slog"
+
+	tea "charm.land/bubbletea/v2"
+	"github.com/spf13/cobra"
+
+	"github.com/RenseiAI/agentfactory-tui/internal/app"
+)
+
+// newDashboardCmd constructs the `dashboard` subcommand.
+func newDashboardCmd(cfg Config) *cobra.Command {goCover_6f3409cb46e8__18[0] = 2 ; goCover_6f3409cb46e8__18[1] = goCover_6f3409cb46e8_P ; goCover_6f3409cb46e8__18[2] = 18 ; goCover_6f3409cb46e8__18[3] = 1;
+	return &cobra.Command{
+		Use:          "dashboard",
+		Short:        "Launch the TUI dashboard",
+		Long:         "Launch the full-screen Bubble Tea TUI dashboard for fleet monitoring.",
+		SilenceUsage: true,
+		RunE: func(_ *cobra.Command, _ []string) error {goCover_6f3409cb46e8__18[4] = 1;
+			ctx := &app.Context{
+				DataSource: cfg.ClientFactory(),
+				BaseURL:    cfg.resolveURL(),
+			}
+			return runDashboard(ctx)
+		},
+	}
+}
+
+// runDashboard launches the Bubble Tea TUI. Logging is suppressed while
+// the TUI is running to avoid corrupting the terminal display.
+//
+// It is unexported because its parameter references an internal type.
+// External callers launch the dashboard via the Cobra subcommand
+// registered by RegisterCommands with Config{EnableDashboard: true}.
+func runDashboard(ctx *app.Context) error {goCover_6f3409cb46e8__19[0] = 3 ; goCover_6f3409cb46e8__19[1] = goCover_6f3409cb46e8_P ; goCover_6f3409cb46e8__19[2] = 19 ; goCover_6f3409cb46e8__19[3] = 1;
+	// Suppress logging while Bubble Tea owns the terminal.
+	prev := slog.Default()
+	slog.SetDefault(slog.New(slog.NewTextHandler(io.Discard, nil)))
+	defer slog.SetDefault(prev)
+
+	model := app.New(ctx)
+	p := tea.NewProgram(model)
+
+	if _, err := p.Run(); err != nil {goCover_6f3409cb46e8__19[5] = 1;
+		return fmt.Errorf("run dashboard: %w", err)
+	}
+	goCover_6f3409cb46e8__19[4] = 1;return nil
+}

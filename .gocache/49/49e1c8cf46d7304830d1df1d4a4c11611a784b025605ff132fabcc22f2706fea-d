@@ -1,0 +1,9 @@
+./ansi.go
+./dialog.go
+./doc.go
+./log_viewer.go
+./progressbar.go
+./select.go
+./spinner.go
+./tabs.go
+./textinput.go

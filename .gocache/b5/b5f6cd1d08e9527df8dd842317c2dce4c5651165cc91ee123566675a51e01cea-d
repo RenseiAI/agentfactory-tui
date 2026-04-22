@@ -1,0 +1,4 @@
+./client.go
+./errors.go
+./mock.go
+./types.go

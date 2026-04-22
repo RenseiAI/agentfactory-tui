@@ -1,0 +1,66 @@
+//line /Users/markkropf/Developer/RenseiAi-Org/agentfactory-tui.wt/REN-74-QA/afcli/commands.go:1:1
+// Package afcli provides Cobra command factories for the AgentFactory CLI.
+// Downstream projects can import this package and call
+// RegisterCommands to add all af subcommands to their own root command.
+package afcli
+
+import (
+	"github.com/RenseiAI/agentfactory-tui/afclient"
+	"github.com/spf13/cobra"
+)
+
+// Config controls how af commands are wired into a parent CLI.
+type Config struct {
+	// ClientFactory returns an afclient.DataSource for API calls.
+	// Required.
+	ClientFactory func() afclient.DataSource
+
+	// DefaultURLFunc is a lazy URL resolution function (for flag-based callers).
+	// Optional. Checked before DefaultURL.
+	DefaultURLFunc func() string
+
+	// DefaultURL is the fallback API base URL if DefaultURLFunc is nil.
+	DefaultURL string
+
+	// EnableDashboard registers the dashboard command when true.
+	EnableDashboard bool
+
+	// ProjectFunc returns the active project slug (or ID) used to scope
+	// list endpoints that support filtering. Returning an empty string
+	// means fleet-wide (no scope), preserving the default behavior.
+	// Optional. When nil, all commands behave fleet-wide.
+	ProjectFunc func() string
+}
+
+// resolveURL returns the base URL to use, checking DefaultURLFunc first,
+// then DefaultURL, then "http://localhost:3000".
+func (c Config) resolveURL() string {goCover_6f3409cb46e8__16[0] = 6 ; goCover_6f3409cb46e8__16[1] = goCover_6f3409cb46e8_P ; goCover_6f3409cb46e8__16[2] = 16 ; goCover_6f3409cb46e8__16[3] = 1;
+	if c.DefaultURLFunc != nil {goCover_6f3409cb46e8__16[6] = 1;
+		if u := c.DefaultURLFunc(); u != "" {goCover_6f3409cb46e8__16[7] = 1;
+			return u
+		}
+	}
+	goCover_6f3409cb46e8__16[4] = 1;if c.DefaultURL != "" {goCover_6f3409cb46e8__16[8] = 1;
+		return c.DefaultURL
+	}
+	goCover_6f3409cb46e8__16[5] = 1;return "http://localhost:3000"
+}
+
+// RegisterCommands adds all AgentFactory subcommands to the given root
+// command. The commands use cfg to resolve API clients and defaults.
+//
+// This is the primary integration point for downstream CLIs that want
+// to embed AgentFactory functionality under their own root command
+// (e.g. `mycli dashboard`, `mycli agent list`, etc.).
+func RegisterCommands(root *cobra.Command, cfg Config) {goCover_6f3409cb46e8__17[0] = 2 ; goCover_6f3409cb46e8__17[1] = goCover_6f3409cb46e8_P ; goCover_6f3409cb46e8__17[2] = 17 ; goCover_6f3409cb46e8__17[3] = 1;
+	ds := cfg.ClientFactory
+	root.AddCommand(newStatusCmd(ds))
+	root.AddCommand(newAgentCmd(ds, cfg.ProjectFunc))
+	root.AddCommand(newSessionCmd(ds, cfg.ProjectFunc))
+	root.AddCommand(newGovernorCmd(ds))
+	root.AddCommand(newWorkerCmd(ds))
+	root.AddCommand(newFleetCmd(ds))
+	if cfg.EnableDashboard {goCover_6f3409cb46e8__17[4] = 1;
+		root.AddCommand(newDashboardCmd(cfg))
+	}
+}

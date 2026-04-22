@@ -1,0 +1,5 @@
+./bit_darwin.go
+./syscalls_darwin.go
+./termios.go
+./termios_bsd.go
+./termios_other.go

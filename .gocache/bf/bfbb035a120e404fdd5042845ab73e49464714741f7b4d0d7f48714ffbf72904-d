@@ -1,0 +1,9 @@
+./client.go
+./errors.go
+./fleet.go
+./heartbeat.go
+./pid.go
+./poll.go
+./register.go
+./types.go
+./worker.go

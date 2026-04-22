@@ -1,0 +1,85 @@
+//line /Users/markkropf/Developer/RenseiAi-Org/agentfactory-tui.wt/REN-74-QA/afcli/governor_stop.go:1:1
+package afcli
+
+import (
+	"fmt"
+	"os"
+	"syscall"
+	"time"
+
+	"github.com/spf13/cobra"
+)
+
+// newGovernorStopCmd constructs the `governor stop` subcommand.
+// It reads the saved PID, sends SIGTERM, waits up to 10 seconds
+// for graceful shutdown, then SIGKILL if needed.
+func newGovernorStopCmd() *cobra.Command {goCover_6f3409cb46e8__33[0] = 15 ; goCover_6f3409cb46e8__33[1] = goCover_6f3409cb46e8_P ; goCover_6f3409cb46e8__33[2] = 33 ; goCover_6f3409cb46e8__33[3] = 1;
+	cmd := &cobra.Command{
+		Use:          "stop",
+		Short:        "Stop the running governor",
+		Long:         "Stop the governor process by sending SIGTERM. If it does not exit within 10 seconds, SIGKILL is sent.",
+		SilenceUsage: true,
+		RunE: func(_ *cobra.Command, _ []string) error {goCover_6f3409cb46e8__33[5] = 1;
+			pid, err := loadPID(governorPIDName)
+			if err != nil {goCover_6f3409cb46e8__33[12] = 1;
+				return fmt.Errorf("governor not running: %w", err)
+			}
+
+			goCover_6f3409cb46e8__33[6] = 1;proc, err := os.FindProcess(pid)
+			if err != nil {goCover_6f3409cb46e8__33[13] = 1;
+				_ = removePIDFile(governorPIDName)
+				return fmt.Errorf("find process %d: %w", pid, err)
+			}
+
+			// Check if the process is actually running.
+			goCover_6f3409cb46e8__33[7] = 1;if err := proc.Signal(syscall.Signal(0)); err != nil {goCover_6f3409cb46e8__33[14] = 1;
+				_ = removePIDFile(governorPIDName)
+				return fmt.Errorf("governor (PID %d) is not running (stale pid file removed)", pid)
+			}
+
+			// Send SIGTERM for graceful shutdown.
+			goCover_6f3409cb46e8__33[8] = 1;if err := proc.Signal(syscall.SIGTERM); err != nil {goCover_6f3409cb46e8__33[15] = 1;
+				_ = removePIDFile(governorPIDName)
+				return fmt.Errorf("send SIGTERM to %d: %w", pid, err)
+			}
+
+			// Wait up to 10 seconds for the process to exit.
+			goCover_6f3409cb46e8__33[9] = 1;if waitForExit(proc, 10*time.Second) {goCover_6f3409cb46e8__33[16] = 1;
+				_ = removePIDFile(governorPIDName)
+				fmt.Printf("Governor stopped (PID %d)\n", pid)
+				return nil
+			}
+
+			// Force kill after timeout.
+			goCover_6f3409cb46e8__33[10] = 1;if err := proc.Signal(syscall.SIGKILL); err != nil {goCover_6f3409cb46e8__33[17] = 1;
+				_ = removePIDFile(governorPIDName)
+				return fmt.Errorf("send SIGKILL to %d: %w", pid, err)
+			}
+
+			goCover_6f3409cb46e8__33[11] = 1;_ = removePIDFile(governorPIDName)
+			fmt.Printf("Governor killed (PID %d)\n", pid)
+			return nil
+		},
+	}
+
+	goCover_6f3409cb46e8__33[4] = 1;return cmd
+}
+
+// waitForExit polls the process with Signal(0) at 100ms intervals,
+// returning true if the process has exited within the timeout.
+func waitForExit(proc *os.Process, timeout time.Duration) bool {goCover_6f3409cb46e8__34[0] = 5 ; goCover_6f3409cb46e8__34[1] = goCover_6f3409cb46e8_P ; goCover_6f3409cb46e8__34[2] = 34 ; goCover_6f3409cb46e8__34[3] = 1;
+	deadline := time.After(timeout)
+	ticker := time.NewTicker(100 * time.Millisecond)
+	defer ticker.Stop()
+
+	for {goCover_6f3409cb46e8__34[4] = 1;
+		select {
+		case <-deadline:goCover_6f3409cb46e8__34[5] = 1;
+			return false
+		case <-ticker.C:goCover_6f3409cb46e8__34[6] = 1;
+			if err := proc.Signal(syscall.Signal(0)); err != nil {goCover_6f3409cb46e8__34[7] = 1;
+				return true
+			}
+		}
+	}
+}

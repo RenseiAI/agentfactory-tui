@@ -1,0 +1,138 @@
+//line /Users/markkropf/Developer/RenseiAi-Org/agentfactory-tui.wt/REN-74-QA/afcli/governor_start.go:1:1
+package afcli
+
+import (
+	"fmt"
+	"os"
+	"os/exec"
+	"os/signal"
+	"syscall"
+
+	"github.com/spf13/cobra"
+)
+
+// governorPIDName is the PID file name used for the governor process.
+const governorPIDName = "governor"
+
+// findGovernorBinary searches PATH for the governor binary, preferring
+// "agentfactory-governor" over the shorter "af-governor" alias.
+func findGovernorBinary() (string, error) {goCover_6f3409cb46e8__28[0] = 4 ; goCover_6f3409cb46e8__28[1] = goCover_6f3409cb46e8_P ; goCover_6f3409cb46e8__28[2] = 28 ; goCover_6f3409cb46e8__28[3] = 1;
+	for _, name := range []string{"agentfactory-governor", "af-governor"} {goCover_6f3409cb46e8__28[5] = 1;
+		path, err := exec.LookPath(name)
+		if err == nil {goCover_6f3409cb46e8__28[6] = 1;
+			return path, nil
+		}
+	}
+	goCover_6f3409cb46e8__28[4] = 1;return "", fmt.Errorf("governor binary not found: install agentfactory-governor or af-governor")
+}
+
+// newGovernorStartCmd constructs the `governor start` subcommand.
+// It finds and launches the governor binary as a subprocess, either
+// in foreground mode (streaming logs) or background mode (PID tracking).
+func newGovernorStartCmd() *cobra.Command {goCover_6f3409cb46e8__29[0] = 11 ; goCover_6f3409cb46e8__29[1] = goCover_6f3409cb46e8_P ; goCover_6f3409cb46e8__29[2] = 29 ; goCover_6f3409cb46e8__29[3] = 1;
+	var (
+		project       string
+		foreground    bool
+		scanInterval  string
+		maxDispatches int
+	)
+
+	cmd := &cobra.Command{
+		Use:          "start",
+		Short:        "Start the governor scan loop",
+		Long:         "Launch the governor process that scans Linear issues and dispatches work. Runs in background by default; use --foreground to stream logs.",
+		SilenceUsage: true,
+		RunE: func(_ *cobra.Command, _ []string) error {goCover_6f3409cb46e8__29[5] = 1;
+			binPath, err := findGovernorBinary()
+			if err != nil {goCover_6f3409cb46e8__29[10] = 1;
+				return err
+			}
+
+			goCover_6f3409cb46e8__29[6] = 1;args := []string{"governor", "--project", project}
+			if scanInterval != "" {goCover_6f3409cb46e8__29[11] = 1;
+				args = append(args, "--scan-interval", scanInterval)
+			}
+			goCover_6f3409cb46e8__29[7] = 1;if maxDispatches > 0 {goCover_6f3409cb46e8__29[12] = 1;
+				args = append(args, "--max-dispatches", fmt.Sprintf("%d", maxDispatches))
+			}
+
+			goCover_6f3409cb46e8__29[8] = 1;if foreground {goCover_6f3409cb46e8__29[13] = 1;
+				return runGovernorForeground(binPath, args)
+			}
+			goCover_6f3409cb46e8__29[9] = 1;return runGovernorBackground(binPath, args)
+		},
+	}
+
+	goCover_6f3409cb46e8__29[4] = 1;cmd.Flags().StringVar(&project, "project", "", "Project slug (required)")
+	cmd.Flags().BoolVarP(&foreground, "foreground", "f", false, "Run in foreground with log streaming")
+	cmd.Flags().StringVar(&scanInterval, "scan-interval", "", "Scan loop interval (e.g. 30s, 1m)")
+	cmd.Flags().IntVar(&maxDispatches, "max-dispatches", 0, "Maximum concurrent dispatches")
+	_ = cmd.MarkFlagRequired("project")
+
+	return cmd
+}
+
+// runGovernorForeground runs the governor binary in the foreground,
+// piping stdout/stderr to the terminal. It waits for Ctrl+C (SIGINT)
+// and then sends SIGTERM to the child process.
+func runGovernorForeground(binPath string, args []string) error {goCover_6f3409cb46e8__30[0] = 9 ; goCover_6f3409cb46e8__30[1] = goCover_6f3409cb46e8_P ; goCover_6f3409cb46e8__30[2] = 30 ; goCover_6f3409cb46e8__30[3] = 1;
+	cmd := exec.Command(binPath, args...) //nolint:gosec // binPath comes from exec.LookPath
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	cmd.Stdin = os.Stdin
+
+	if err := cmd.Start(); err != nil {goCover_6f3409cb46e8__30[6] = 1;
+		return fmt.Errorf("start governor: %w", err)
+	}
+
+	// Trap SIGINT/SIGTERM and forward to child.
+	goCover_6f3409cb46e8__30[4] = 1;sigCh := make(chan os.Signal, 1)
+	signal.Notify(sigCh, syscall.SIGINT, syscall.SIGTERM)
+
+	doneCh := make(chan error, 1)
+	go func() {goCover_6f3409cb46e8__30[7] = 1;
+		doneCh <- cmd.Wait()
+	}()
+
+	goCover_6f3409cb46e8__30[5] = 1;select {
+	case sig := <-sigCh:goCover_6f3409cb46e8__30[8] = 1;
+		// Forward signal to the child process.
+		_ = cmd.Process.Signal(sig)
+		return <-doneCh
+	case err := <-doneCh:goCover_6f3409cb46e8__30[9] = 1;
+		signal.Stop(sigCh)
+		if err != nil {goCover_6f3409cb46e8__30[11] = 1;
+			return fmt.Errorf("governor exited: %w", err)
+		}
+		goCover_6f3409cb46e8__30[10] = 1;return nil
+	}
+}
+
+// runGovernorBackground starts the governor binary as a background
+// process and saves its PID for later management via stop/status.
+func runGovernorBackground(binPath string, args []string) error {goCover_6f3409cb46e8__31[0] = 5 ; goCover_6f3409cb46e8__31[1] = goCover_6f3409cb46e8_P ; goCover_6f3409cb46e8__31[2] = 31 ; goCover_6f3409cb46e8__31[3] = 1;
+	cmd := exec.Command(binPath, args...) //nolint:gosec // binPath comes from exec.LookPath
+	// Detach stdout/stderr so the process runs silently in background.
+	cmd.Stdout = nil
+	cmd.Stderr = nil
+	cmd.Stdin = nil
+	// Start in a new process group so it survives the parent exiting.
+	cmd.SysProcAttr = &syscall.SysProcAttr{Setpgid: true}
+
+	if err := cmd.Start(); err != nil {goCover_6f3409cb46e8__31[6] = 1;
+		return fmt.Errorf("start governor: %w", err)
+	}
+
+	goCover_6f3409cb46e8__31[4] = 1;pid := cmd.Process.Pid
+	if err := savePID(governorPIDName, pid); err != nil {goCover_6f3409cb46e8__31[7] = 1;
+		// Kill the process if we can't track it.
+		_ = cmd.Process.Kill()
+		return fmt.Errorf("save pid: %w", err)
+	}
+
+	// Release the process so it isn't waited on by this parent.
+	goCover_6f3409cb46e8__31[5] = 1;_ = cmd.Process.Release()
+
+	fmt.Printf("Governor started (PID %d)\n", pid)
+	return nil
+}

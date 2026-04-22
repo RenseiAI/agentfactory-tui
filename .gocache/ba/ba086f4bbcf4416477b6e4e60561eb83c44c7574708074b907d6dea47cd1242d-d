@@ -1,0 +1,141 @@
+//line /Users/markkropf/Developer/RenseiAi-Org/agentfactory-tui.wt/REN-74-QA/afcli/agent_status.go:1:1
+package afcli
+
+import (
+	"encoding/json"
+	"errors"
+	"fmt"
+	"io"
+	"strconv"
+	"text/tabwriter"
+
+	"github.com/spf13/cobra"
+
+	"github.com/RenseiAI/agentfactory-tui/afclient"
+)
+
+// emDash is the placeholder rendered for nil pointer fields in human output.
+const emDash = "—"
+
+// agentStatusJSON is the combined payload emitted by `agent status --json`.
+// Activity is a pointer so it is omitted entirely when the session has no
+// activity events, matching the spec's `omitempty` requirement.
+type agentStatusJSON struct {
+	Session  afclient.SessionDetail  `json:"session"`
+	Activity *afclient.ActivityEvent `json:"currentActivity,omitempty"`
+}
+
+// newAgentStatusCmd constructs the `agent status <session-id>` subcommand.
+// It fetches the session detail and latest activity via DataSource and renders
+// either an aligned eight-row block (default) or indented JSON (--json).
+func newAgentStatusCmd(ds func() afclient.DataSource) *cobra.Command {goCover_6f3409cb46e8__9[0] = 13 ; goCover_6f3409cb46e8__9[1] = goCover_6f3409cb46e8_P ; goCover_6f3409cb46e8__9[2] = 9 ; goCover_6f3409cb46e8__9[3] = 1;
+	var jsonMode bool
+
+	cmd := &cobra.Command{
+		Use:          "status <session-id>",
+		Short:        "Show detailed status for an agent session",
+		Long:         "Show detailed status for a single agent session, including duration, token usage, cost, and current activity.",
+		Args:         cobra.ExactArgs(1),
+		SilenceUsage: true,
+		RunE: func(cmd *cobra.Command, args []string) error {goCover_6f3409cb46e8__9[5] = 1;
+			id := args[0]
+
+			client := ds()
+
+			detail, err := client.GetSessionDetail(id)
+			if err != nil {goCover_6f3409cb46e8__9[9] = 1;
+				if errors.Is(err, afclient.ErrNotFound) {goCover_6f3409cb46e8__9[11] = 1;
+					return fmt.Errorf("session %s: %w", id, afclient.ErrNotFound)
+				}
+				goCover_6f3409cb46e8__9[10] = 1;return fmt.Errorf("get session detail: %w", err)
+			}
+
+			goCover_6f3409cb46e8__9[6] = 1;activities, err := client.GetActivities(id, nil)
+			if err != nil {goCover_6f3409cb46e8__9[12] = 1;
+				return fmt.Errorf("get activities: %w", err)
+			}
+			goCover_6f3409cb46e8__9[7] = 1;current := latestActivity(activities.Activities)
+
+			out := cmd.OutOrStdout()
+
+			if jsonMode {goCover_6f3409cb46e8__9[13] = 1;
+				enc := json.NewEncoder(out)
+				enc.SetIndent("", "  ")
+				if err := enc.Encode(agentStatusJSON{
+					Session:  detail.Session,
+					Activity: current,
+				}); err != nil {goCover_6f3409cb46e8__9[15] = 1;
+					return fmt.Errorf("encode status: %w", err)
+				}
+				goCover_6f3409cb46e8__9[14] = 1;return nil
+			}
+
+			goCover_6f3409cb46e8__9[8] = 1;return writeSessionDetail(out, detail.Session, current)
+		},
+	}
+
+	goCover_6f3409cb46e8__9[4] = 1;cmd.Flags().BoolVar(&jsonMode, "json", false, "Output raw JSON (indented)")
+
+	return cmd
+}
+
+// latestActivity returns a pointer to the last element of events, or nil when
+// the slice is empty. Mock.GetActivities yields events in chronological order,
+// so the last element is the most recent.
+func latestActivity(events []afclient.ActivityEvent) *afclient.ActivityEvent {goCover_6f3409cb46e8__10[0] = 3 ; goCover_6f3409cb46e8__10[1] = goCover_6f3409cb46e8_P ; goCover_6f3409cb46e8__10[2] = 10 ; goCover_6f3409cb46e8__10[3] = 1;
+	if len(events) == 0 {goCover_6f3409cb46e8__10[5] = 1;
+		return nil
+	}
+	goCover_6f3409cb46e8__10[4] = 1;return &events[len(events)-1]
+}
+
+// writeSessionDetail renders the eight-row detail block to w using tabwriter
+// for column alignment. Nil pointer fields on SessionDetail render as em-dash.
+func writeSessionDetail(w io.Writer, s afclient.SessionDetail, current *afclient.ActivityEvent) error {goCover_6f3409cb46e8__11[0] = 6 ; goCover_6f3409cb46e8__11[1] = goCover_6f3409cb46e8_P ; goCover_6f3409cb46e8__11[2] = 11 ; goCover_6f3409cb46e8__11[3] = 1;
+	tw := tabwriter.NewWriter(w, 0, 0, 2, ' ', 0)
+
+	rows := [][2]string{
+		{"Session:", s.ID},
+		{"Identifier:", s.Identifier},
+		{"Status:", string(s.Status)},
+		{"Duration:", formatDuration(s.Duration)},
+		{"Input Tokens:", intPtrValue(s.InputTokens)},
+		{"Output Tokens:", intPtrValue(s.OutputTokens)},
+		{"Cost (USD):", costValue(s.CostUsd)},
+		{"Current Activity:", activityValue(current)},
+	}
+
+	for _, r := range rows {goCover_6f3409cb46e8__11[6] = 1;
+		if _, err := fmt.Fprintf(tw, "%s\t%s\n", r[0], r[1]); err != nil {goCover_6f3409cb46e8__11[7] = 1;
+			return fmt.Errorf("write row: %w", err)
+		}
+	}
+	goCover_6f3409cb46e8__11[4] = 1;if err := tw.Flush(); err != nil {goCover_6f3409cb46e8__11[8] = 1;
+		return fmt.Errorf("flush detail: %w", err)
+	}
+	goCover_6f3409cb46e8__11[5] = 1;return nil
+}
+
+// intPtrValue renders a *int as a decimal string, or em-dash when nil.
+func intPtrValue(v *int) string {goCover_6f3409cb46e8__12[0] = 3 ; goCover_6f3409cb46e8__12[1] = goCover_6f3409cb46e8_P ; goCover_6f3409cb46e8__12[2] = 12 ; goCover_6f3409cb46e8__12[3] = 1;
+	if v == nil {goCover_6f3409cb46e8__12[5] = 1;
+		return emDash
+	}
+	goCover_6f3409cb46e8__12[4] = 1;return strconv.Itoa(*v)
+}
+
+// costValue renders a *float64 USD cost as "$1.2345", or em-dash when nil.
+func costValue(v *float64) string {goCover_6f3409cb46e8__13[0] = 3 ; goCover_6f3409cb46e8__13[1] = goCover_6f3409cb46e8_P ; goCover_6f3409cb46e8__13[2] = 13 ; goCover_6f3409cb46e8__13[3] = 1;
+	if v == nil {goCover_6f3409cb46e8__13[5] = 1;
+		return emDash
+	}
+	goCover_6f3409cb46e8__13[4] = 1;return fmt.Sprintf("$%.4f", *v)
+}
+
+// activityValue renders an activity as "Type — Content", or em-dash when nil.
+func activityValue(a *afclient.ActivityEvent) string {goCover_6f3409cb46e8__14[0] = 3 ; goCover_6f3409cb46e8__14[1] = goCover_6f3409cb46e8_P ; goCover_6f3409cb46e8__14[2] = 14 ; goCover_6f3409cb46e8__14[3] = 1;
+	if a == nil {goCover_6f3409cb46e8__14[5] = 1;
+		return emDash
+	}
+	goCover_6f3409cb46e8__14[4] = 1;return fmt.Sprintf("%s — %s", string(a.Type), a.Content)
+}

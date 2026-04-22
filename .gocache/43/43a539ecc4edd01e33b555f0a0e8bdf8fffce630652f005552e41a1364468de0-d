@@ -1,0 +1,78 @@
+//line /Users/markkropf/Developer/RenseiAi-Org/agentfactory-tui.wt/REN-74-QA/afcli/fleet_stop.go:1:1
+package afcli
+
+import (
+	"errors"
+	"fmt"
+	"os"
+	"syscall"
+	"time"
+
+	"github.com/spf13/cobra"
+
+	"github.com/RenseiAI/agentfactory-tui/worker"
+)
+
+// newFleetStopCmd constructs the `fleet stop` subcommand. It reads the
+// fleet PID file, sends SIGTERM to each recorded process, waits up to
+// --grace for graceful exit, then SIGKILLs survivors. The PID file is
+// always removed at the end so subsequent `fleet status` is clean.
+func newFleetStopCmd() *cobra.Command {goCover_6f3409cb46e8__26[0] = 21 ; goCover_6f3409cb46e8__26[1] = goCover_6f3409cb46e8_P ; goCover_6f3409cb46e8__26[2] = 26 ; goCover_6f3409cb46e8__26[3] = 1;
+	var grace time.Duration
+
+	cmd := &cobra.Command{
+		Use:          "stop",
+		Short:        "Stop all running fleet workers",
+		Long:         "Send SIGTERM to every worker recorded in the fleet PID file, wait up to --grace for graceful exit, then SIGKILL any survivors.",
+		SilenceUsage: true,
+		RunE: func(_ *cobra.Command, _ []string) error {goCover_6f3409cb46e8__26[5] = 1;
+			pids, err := worker.ReadFleetPIDs()
+			if err != nil {goCover_6f3409cb46e8__26[10] = 1;
+				return fmt.Errorf("fleet stop: %w", err)
+			}
+			goCover_6f3409cb46e8__26[6] = 1;if len(pids) == 0 {goCover_6f3409cb46e8__26[11] = 1;
+				return fmt.Errorf("fleet stop: no fleet PID file (is a fleet running?)")
+			}
+
+			goCover_6f3409cb46e8__26[7] = 1;stopped := 0
+			for _, pid := range pids {goCover_6f3409cb46e8__26[12] = 1;
+				proc, ferr := os.FindProcess(pid)
+				if ferr != nil {goCover_6f3409cb46e8__26[18] = 1;
+					// Not fatal; log and continue so other workers still get
+					// signaled.
+					fmt.Fprintf(os.Stderr, "fleet stop: find process %d: %v\n", pid, ferr)
+					continue
+				}
+				// Skip processes that are already gone.
+				goCover_6f3409cb46e8__26[13] = 1;if sigErr := proc.Signal(syscall.Signal(0)); sigErr != nil {goCover_6f3409cb46e8__26[19] = 1;
+					continue
+				}
+				goCover_6f3409cb46e8__26[14] = 1;if sigErr := proc.Signal(syscall.SIGTERM); sigErr != nil && !errors.Is(sigErr, os.ErrProcessDone) {goCover_6f3409cb46e8__26[20] = 1;
+					fmt.Fprintf(os.Stderr, "fleet stop: sigterm %d: %v\n", pid, sigErr)
+					continue
+				}
+				goCover_6f3409cb46e8__26[15] = 1;if waitForExit(proc, grace) {goCover_6f3409cb46e8__26[21] = 1;
+					stopped++
+					continue
+				}
+				// Graceful window elapsed — force kill.
+				goCover_6f3409cb46e8__26[16] = 1;if killErr := proc.Signal(syscall.SIGKILL); killErr != nil && !errors.Is(killErr, os.ErrProcessDone) {goCover_6f3409cb46e8__26[22] = 1;
+					fmt.Fprintf(os.Stderr, "fleet stop: sigkill %d: %v\n", pid, killErr)
+					continue
+				}
+				goCover_6f3409cb46e8__26[17] = 1;stopped++
+			}
+
+			goCover_6f3409cb46e8__26[8] = 1;if err := worker.RemoveFleetPIDFile(); err != nil {goCover_6f3409cb46e8__26[23] = 1;
+				return fmt.Errorf("fleet stop: %w", err)
+			}
+
+			goCover_6f3409cb46e8__26[9] = 1;fmt.Printf("Fleet stopped: %d workers\n", stopped)
+			return nil
+		},
+	}
+
+	goCover_6f3409cb46e8__26[4] = 1;cmd.Flags().DurationVar(&grace, "grace", 10*time.Second, "Grace period before escalating to SIGKILL")
+
+	return cmd
+}

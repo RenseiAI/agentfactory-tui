@@ -1,0 +1,4 @@
+./output.go
+./status.go
+./tty.go
+./watch.go

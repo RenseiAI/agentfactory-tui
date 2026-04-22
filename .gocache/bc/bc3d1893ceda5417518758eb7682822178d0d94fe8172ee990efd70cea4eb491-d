@@ -1,0 +1,25 @@
+//line /Users/markkropf/Developer/RenseiAi-Org/agentfactory-tui.wt/REN-74-QA/afcli/worker.go:1:1
+package afcli
+
+import (
+	"github.com/RenseiAI/agentfactory-tui/afclient"
+	"github.com/spf13/cobra"
+)
+
+// newWorkerCmd constructs the `worker` parent command group. It holds no
+// logic of its own; it dispatches to subcommands that run a single
+// foreground worker process. The ds parameter is accepted for signature
+// consistency with newAgentCmd but is unused because the worker package
+// owns its own HTTP client rather than using afclient.
+func newWorkerCmd(_ func() afclient.DataSource) *cobra.Command {goCover_6f3409cb46e8__45[0] = 1 ; goCover_6f3409cb46e8__45[1] = goCover_6f3409cb46e8_P ; goCover_6f3409cb46e8__45[2] = 45 ; goCover_6f3409cb46e8__45[3] = 1;
+	cmd := &cobra.Command{
+		Use:          "worker",
+		Short:        "Run an AgentFactory worker process",
+		Long:         "Register with the coordinator, poll for work, and heartbeat. Intended as a single foreground worker process; use `af fleet` for multi-process supervision.",
+		SilenceUsage: true,
+	}
+
+	cmd.AddCommand(newWorkerStartCmd())
+
+	return cmd
+}

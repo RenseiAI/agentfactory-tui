@@ -1,0 +1,64 @@
+//line /Users/markkropf/Developer/RenseiAi-Org/agentfactory-tui.wt/REN-74-QA/afcli/agent_chat.go:1:1
+package afcli
+
+import (
+	"encoding/json"
+	"errors"
+	"fmt"
+	"strings"
+
+	"github.com/spf13/cobra"
+
+	"github.com/RenseiAI/agentfactory-tui/afclient"
+)
+
+// newAgentChatCmd constructs `agent chat <session-id> <message>`. It
+// forwards the message to the coordinator's forward-prompt API and
+// prints a one-line confirmation, or the raw response as indented JSON
+// when --json is set.
+func newAgentChatCmd(ds func() afclient.DataSource) *cobra.Command {goCover_6f3409cb46e8__6[0] = 11 ; goCover_6f3409cb46e8__6[1] = goCover_6f3409cb46e8_P ; goCover_6f3409cb46e8__6[2] = 6 ; goCover_6f3409cb46e8__6[3] = 1;
+	var jsonMode bool
+
+	cmd := &cobra.Command{
+		Use:          "chat <session-id> <message>",
+		Short:        "Forward a message to a running agent session",
+		Long:         "Forward a chat message to a running AgentFactory session via the coordinator forward-prompt API.",
+		Args:         cobra.ExactArgs(2),
+		SilenceUsage: true,
+		RunE: func(cmd *cobra.Command, args []string) error {goCover_6f3409cb46e8__6[5] = 1;
+			taskID := args[0]
+			message := args[1]
+			if strings.TrimSpace(message) == "" {goCover_6f3409cb46e8__6[9] = 1;
+				return errors.New("message must not be empty")
+			}
+
+			goCover_6f3409cb46e8__6[6] = 1;client := ds()
+
+			resp, err := client.ForwardPrompt(afclient.ForwardPromptRequest{
+				TaskID:  taskID,
+				Message: message,
+			})
+			if err != nil {goCover_6f3409cb46e8__6[10] = 1;
+				return fmt.Errorf("forward prompt: %w", err)
+			}
+
+			goCover_6f3409cb46e8__6[7] = 1;out := cmd.OutOrStdout()
+			if jsonMode {goCover_6f3409cb46e8__6[11] = 1;
+				enc := json.NewEncoder(out)
+				enc.SetIndent("", "  ")
+				if err := enc.Encode(resp); err != nil {goCover_6f3409cb46e8__6[13] = 1;
+					return fmt.Errorf("encode forward-prompt response: %w", err)
+				}
+				goCover_6f3409cb46e8__6[12] = 1;return nil
+			}
+
+			goCover_6f3409cb46e8__6[8] = 1;_, _ = fmt.Fprintf(out, "forwarded prompt %s to %s (status: %s)\n",
+				resp.PromptID, resp.TaskID, resp.SessionStatus)
+			return nil
+		},
+	}
+
+	goCover_6f3409cb46e8__6[4] = 1;cmd.Flags().BoolVar(&jsonMode, "json", false, "Output raw JSON (indented)")
+
+	return cmd
+}
