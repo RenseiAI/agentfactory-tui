@@ -164,6 +164,23 @@ func TestMockClientReconnectSession(t *testing.T) {
 	}
 }
 
+func TestMockClientReconnectSessionIssueIdentifier(t *testing.T) {
+	m := NewMockClient()
+	resp, err := m.ReconnectSession("SUP-674", ReconnectSessionRequest{})
+	if err != nil {
+		t.Fatalf("ReconnectSession: %v", err)
+	}
+	if !resp.Reconnected {
+		t.Error("Reconnected should be true")
+	}
+	if resp.SessionID != "SUP-674" {
+		t.Errorf("SessionID = %q, want %q", resp.SessionID, "SUP-674")
+	}
+	if resp.SessionStatus != SessionStatus("running") {
+		t.Errorf("SessionStatus = %q, want %q", resp.SessionStatus, "running")
+	}
+}
+
 func TestMockClientReconnectSessionNotFound(t *testing.T) {
 	m := NewMockClient()
 	_, err := m.ReconnectSession("nope", ReconnectSessionRequest{})

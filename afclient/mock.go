@@ -2,6 +2,7 @@ package afclient
 
 import (
 	"fmt"
+	"strings"
 	"time"
 )
 
@@ -218,6 +219,14 @@ func (m *MockClient) ReconnectSession(id string, _ ReconnectSessionRequest) (*Re
 				MissedEvents:  0,
 			}, nil
 		}
+	}
+	if strings.HasPrefix(id, "SUP-") {
+		return &ReconnectSessionResponse{
+			Reconnected:   true,
+			SessionID:     id,
+			SessionStatus: SessionStatus("running"),
+			MissedEvents:  0,
+		}, nil
 	}
 	return nil, fmt.Errorf("session %s: %w", id, ErrNotFound)
 }
