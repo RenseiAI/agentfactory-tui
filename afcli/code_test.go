@@ -27,7 +27,7 @@ func fakeCodeBin(t *testing.T) string {
 	content := `#!/bin/sh
 printf '{"command":"%s","argv":"%s"}' "$1" "$*"
 `
-	if err := os.WriteFile(script, []byte(content), 0o755); err != nil {
+	if err := os.WriteFile(script, []byte(content), 0o755); err != nil { //nolint:gosec // #nosec G306 -- test fake binary; needs owner exec bit
 		t.Fatalf("write fake af-code: %v", err)
 	}
 	t.Setenv("AGENTFACTORY_CODE_BIN", script)

@@ -21,7 +21,7 @@ func fakeAFCode(t *testing.T) string {
 	content := `#!/bin/sh
 echo '{"command":"'$1'","args":"'"$*"'"}'
 `
-	if err := os.WriteFile(script, []byte(content), 0o755); err != nil {
+	if err := os.WriteFile(script, []byte(content), 0o755); err != nil { //nolint:gosec // #nosec G306 -- test fake binary; needs owner exec bit
 		t.Fatalf("write fake af-code: %v", err)
 	}
 	return script
@@ -275,7 +275,7 @@ func TestValidateCrossDeps_WithPath(t *testing.T) {
 func TestResolveCodeBin_EnvOverride(t *testing.T) {
 	dir := t.TempDir()
 	fakebin := filepath.Join(dir, "my-af-code")
-	if err := os.WriteFile(fakebin, []byte("#!/bin/sh\necho '{}'"), 0o755); err != nil {
+	if err := os.WriteFile(fakebin, []byte("#!/bin/sh\necho '{}'"), 0o755); err != nil { //nolint:gosec // #nosec G306 -- test fake binary; needs owner exec bit
 		t.Fatal(err)
 	}
 	t.Setenv("AGENTFACTORY_CODE_BIN", fakebin)

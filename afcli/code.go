@@ -72,7 +72,7 @@ Examples:
   af code get-repo-map --max-files 20
   af code get-repo-map --file-patterns "*.go,src/**"`,
 		SilenceUsage: true,
-		RunE: func(cmd *cobra.Command, _ []string) error {
+		RunE: func(_ *cobra.Command, _ []string) error {
 			r := codeintel.New(cwd())
 			if !r.IsCodeAvailable() {
 				return fmt.Errorf("%w", codeintel.ErrNotAvailable)

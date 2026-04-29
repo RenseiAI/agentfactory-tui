@@ -133,18 +133,10 @@ func (r *Runner) runCode(args ...string) (any, error) {
 	return r.run(binArgs, args)
 }
 
-// runArch executes af-arch <args...> in r.cwd and JSON-decodes stdout.
-func (r *Runner) runArch(args ...string) (any, error) {
-	binArgs, err := r.resolveArchBin()
-	if err != nil {
-		return nil, err
-	}
-	return r.run(binArgs, args)
-}
-
 // run builds the full argv, executes the process, and decodes stdout as JSON.
 func (r *Runner) run(bin []string, extraArgs []string) (any, error) {
-	argv := append(bin, extraArgs...)
+	bin = append(bin, extraArgs...)
+	argv := bin
 	cmd := exec.Command(argv[0], argv[1:]...) //nolint:gosec
 	cmd.Dir = r.cwd
 
@@ -351,8 +343,8 @@ func (r *Runner) ArchAssess(opts ArchAssessOptions) (any, error) {
 		return nil, err
 	}
 
-	argv := append(binArgs, args...)
-	cmd := exec.Command(argv[0], argv[1:]...) //nolint:gosec
+	binArgs = append(binArgs, args...)
+	cmd := exec.Command(binArgs[0], binArgs[1:]...) //nolint:gosec
 	cmd.Dir = r.cwd
 
 	var stdout, stderr bytes.Buffer

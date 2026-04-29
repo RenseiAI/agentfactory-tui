@@ -22,7 +22,7 @@ func fakeArchBin(t *testing.T) string {
 	content := `#!/bin/sh
 printf '{"command":"%s","argv":"%s","gated":false}' "$1" "$*"
 `
-	if err := os.WriteFile(script, []byte(content), 0o755); err != nil {
+	if err := os.WriteFile(script, []byte(content), 0o755); err != nil { //nolint:gosec // #nosec G306 -- test fake binary; needs owner exec bit
 		t.Fatalf("write fake af-arch: %v", err)
 	}
 	t.Setenv("AGENTFACTORY_ARCH_BIN", script)
