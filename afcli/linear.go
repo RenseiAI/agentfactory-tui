@@ -89,7 +89,7 @@ func newLinearClient() (linear.Linear, error) {
 	if key == "" {
 		return nil, fmt.Errorf(
 			"LINEAR_API_KEY environment variable is required. " +
-				"Set it to your Linear API key (or LINEAR_ACCESS_TOKEN).",
+				"Set it to your Linear API key (or LINEAR_ACCESS_TOKEN)",
 		)
 	}
 	c, err := linear.NewClient(key)
@@ -112,7 +112,7 @@ func writeJSON(w io.Writer, v any) error {
 
 // readFile reads the content of path. Used for --description-file / --body-file.
 func readFile(path string) (string, error) {
-	data, err := os.ReadFile(path)
+	data, err := os.ReadFile(path) //nolint:gosec // G304: user-supplied file path is intentional; CLI flag
 	if err != nil {
 		return "", fmt.Errorf("read file %q: %w", path, err)
 	}
@@ -293,8 +293,8 @@ func newLinearCreateIssueCmd() *cobra.Command {
 			}
 			if title == "" || team == "" {
 				return fmt.Errorf(
-					"Usage: af linear create-issue --title \"Title\" --team \"Team\" [--description \"...\"] ...\n" +
-						"Tip: Set LINEAR_TEAM_NAME env var to provide a default team.",
+					"usage: af linear create-issue --title \"Title\" --team \"Team\" [--description \"...\"] ...\n" +
+						"Tip: Set LINEAR_TEAM_NAME env var to provide a default team",
 				)
 			}
 
@@ -533,7 +533,7 @@ func newLinearCreateCommentCmd() *cobra.Command {
 				return err
 			}
 			if resolvedBody == "" {
-				return fmt.Errorf("Usage: af linear create-comment <issue-id> --body \"Comment text\" or --body-file /path/to/file")
+				return fmt.Errorf("usage: af linear create-comment <issue-id> --body \"Comment text\" or --body-file /path/to/file")
 			}
 
 			client, err := newLinearClient()
@@ -571,7 +571,7 @@ func newLinearAddRelationCmd() *cobra.Command {
 		SilenceUsage: true,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if !isValidRelationType(relType) {
-				return fmt.Errorf("Usage: af linear add-relation <issue-id> <related-issue-id> --type <related|blocks|duplicate>")
+				return fmt.Errorf("usage: af linear add-relation <issue-id> <related-issue-id> --type <related|blocks|duplicate>")
 			}
 
 			client, err := newLinearClient()
@@ -828,7 +828,7 @@ func newLinearUpdateSubIssueCmd() *cobra.Command {
 		SilenceUsage: true,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if state == "" && comment == "" {
-				return fmt.Errorf("Usage: af linear update-sub-issue <issue-id> --state \"Finished\" [--comment \"...\"]")
+				return fmt.Errorf("usage: af linear update-sub-issue <issue-id> --state \"Finished\" [--comment \"...\"]")
 			}
 
 			client, err := newLinearClient()
@@ -1085,7 +1085,7 @@ func newLinearListBacklogIssuesCmd() *cobra.Command {
 		SilenceUsage: true,
 		RunE: func(cmd *cobra.Command, _ []string) error {
 			if project == "" {
-				return fmt.Errorf("Usage: af linear list-backlog-issues --project \"ProjectName\"")
+				return fmt.Errorf("usage: af linear list-backlog-issues --project \"ProjectName\"")
 			}
 
 			client, err := newLinearClient()
@@ -1151,7 +1151,7 @@ func newLinearListUnblockedBacklogCmd() *cobra.Command {
 		SilenceUsage: true,
 		RunE: func(cmd *cobra.Command, _ []string) error {
 			if project == "" {
-				return fmt.Errorf("Usage: af linear list-unblocked-backlog --project \"ProjectName\"")
+				return fmt.Errorf("usage: af linear list-unblocked-backlog --project \"ProjectName\"")
 			}
 
 			client, err := newLinearClient()
@@ -1246,7 +1246,7 @@ func newLinearCreateBlockerCmd() *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if title == "" {
 				return fmt.Errorf(
-					"Usage: af linear create-blocker <source-issue-id> --title \"Title\" " +
+					"usage: af linear create-blocker <source-issue-id> --title \"Title\" " +
 						"[--description \"...\"] [--team \"...\"] [--project \"...\"] [--assignee \"user@email.com\"]",
 				)
 			}

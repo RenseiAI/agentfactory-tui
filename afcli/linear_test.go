@@ -38,16 +38,6 @@ func writeLinearGQLData(w http.ResponseWriter, dataJSON string) {
 	_, _ = fmt.Fprintf(w, `{"data":%s}`, dataJSON)
 }
 
-// writeLinearGQLError writes a GraphQL error envelope.
-func writeLinearGQLError(w http.ResponseWriter, msg string) {
-	w.Header().Set("Content-Type", "application/json")
-	resp := map[string]any{
-		"data":   nil,
-		"errors": []map[string]any{{"message": msg}},
-	}
-	_ = json.NewEncoder(w).Encode(resp)
-}
-
 // setupLinearTest sets up a test Linear server.
 // It sets LINEAR_API_KEY to a fixture value, overrides the client base URL,
 // and registers cleanup. Must NOT be called from a parallel test.
@@ -228,7 +218,7 @@ func TestLinearCreateIssue(t *testing.T) {
 }
 
 func TestLinearCreateIssueMissingTitle(t *testing.T) {
-	setupLinearTest(t, func(w http.ResponseWriter, _ *http.Request) {})
+	setupLinearTest(t, func(_ http.ResponseWriter, _ *http.Request) {})
 	_, err := runLinearCmd(t, "", "create-issue", "--team", "Rensei")
 	if err == nil {
 		t.Fatal("expected error when --title is missing")
@@ -238,7 +228,7 @@ func TestLinearCreateIssueMissingTitle(t *testing.T) {
 func TestLinearCreateIssueMissingTeam(t *testing.T) {
 	// Explicitly clear LINEAR_TEAM_NAME
 	t.Setenv("LINEAR_TEAM_NAME", "")
-	setupLinearTest(t, func(w http.ResponseWriter, _ *http.Request) {})
+	setupLinearTest(t, func(_ http.ResponseWriter, _ *http.Request) {})
 	_, err := runLinearCmd(t, "", "create-issue", "--title", "Some Issue")
 	if err == nil {
 		t.Fatal("expected error when neither --team nor LINEAR_TEAM_NAME is set")
@@ -391,7 +381,7 @@ func TestLinearCreateComment(t *testing.T) {
 }
 
 func TestLinearCreateCommentMissingBody(t *testing.T) {
-	setupLinearTest(t, func(w http.ResponseWriter, _ *http.Request) {})
+	setupLinearTest(t, func(_ http.ResponseWriter, _ *http.Request) {})
 	_, err := runLinearCmd(t, "", "create-comment", "REN-1")
 	if err == nil {
 		t.Fatal("expected error when --body is missing")
@@ -469,7 +459,7 @@ func TestLinearAddRelation(t *testing.T) {
 }
 
 func TestLinearAddRelationInvalidType(t *testing.T) {
-	setupLinearTest(t, func(w http.ResponseWriter, _ *http.Request) {})
+	setupLinearTest(t, func(_ http.ResponseWriter, _ *http.Request) {})
 	_, err := runLinearCmd(t, "", "add-relation", "REN-1", "REN-2", "--type", "invalid")
 	if err == nil {
 		t.Fatal("expected error for invalid relation type")
@@ -649,7 +639,7 @@ func TestLinearUpdateSubIssue(t *testing.T) {
 }
 
 func TestLinearUpdateSubIssueMissingArgs(t *testing.T) {
-	setupLinearTest(t, func(w http.ResponseWriter, _ *http.Request) {})
+	setupLinearTest(t, func(_ http.ResponseWriter, _ *http.Request) {})
 	_, err := runLinearCmd(t, "", "update-sub-issue", "REN-1")
 	if err == nil {
 		t.Fatal("expected error when neither --state nor --comment is provided")
@@ -790,7 +780,7 @@ func TestLinearListBacklogIssues(t *testing.T) {
 }
 
 func TestLinearListBacklogIssuesMissingProject(t *testing.T) {
-	setupLinearTest(t, func(w http.ResponseWriter, _ *http.Request) {})
+	setupLinearTest(t, func(_ http.ResponseWriter, _ *http.Request) {})
 	_, err := runLinearCmd(t, "", "list-backlog-issues")
 	if err == nil {
 		t.Fatal("expected error when --project is missing")
@@ -913,7 +903,7 @@ func TestLinearCreateBlocker(t *testing.T) {
 }
 
 func TestLinearCreateBlockerMissingTitle(t *testing.T) {
-	setupLinearTest(t, func(w http.ResponseWriter, _ *http.Request) {})
+	setupLinearTest(t, func(_ http.ResponseWriter, _ *http.Request) {})
 	_, err := runLinearCmd(t, "", "create-blocker", "REN-50")
 	if err == nil {
 		t.Fatal("expected error when --title is missing")
@@ -923,6 +913,6 @@ func TestLinearCreateBlockerMissingTitle(t *testing.T) {
 // ─── linear.Linear interface compliance ──────────────────────────────────────
 
 // TestLinearClientImplementsInterface verifies *linear.Client satisfies the full interface.
-func TestLinearClientImplementsInterface(t *testing.T) {
+func TestLinearClientImplementsInterface(_ *testing.T) {
 	var _ linear.Linear = (*linear.Client)(nil)
 }
