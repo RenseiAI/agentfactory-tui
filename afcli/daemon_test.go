@@ -219,6 +219,7 @@ func TestDaemonInstallSubprocessInvocation(t *testing.T) {
 			script := "#!/bin/sh\n" +
 				"for arg in \"$@\"; do echo \"$arg\"; done > '" + argsFile + "'\n" +
 				"exit 0\n"
+			// #nosec G306 -- test fake binary; needs owner exec bit
 			if err := os.WriteFile(fakeBin, []byte(script), 0o500); err != nil {
 				t.Fatalf("write fake binary: %v", err)
 			}
