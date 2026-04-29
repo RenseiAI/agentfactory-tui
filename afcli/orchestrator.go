@@ -123,23 +123,23 @@ func runOrchestrator(_ *cobra.Command, flags *orchestratorFlags) error {
 
 	// Banner — mirrors the TS orchestrator output.
 	if !flags.quiet {
-		fmt.Fprintf(os.Stdout, "AgentFactory Orchestrator\n")
-		fmt.Fprintf(os.Stdout, "=========================\n")
+		_, _ = fmt.Fprintf(os.Stdout, "AgentFactory Orchestrator\n")
+		_, _ = fmt.Fprintf(os.Stdout, "=========================\n")
 		projectLabel := flags.project
 		if projectLabel == "" {
 			projectLabel = "All (from config.yaml)"
 		}
-		fmt.Fprintf(os.Stdout, "Project: %s\n", projectLabel)
+		_, _ = fmt.Fprintf(os.Stdout, "Project: %s\n", projectLabel)
 		if flags.single != "" {
-			fmt.Fprintf(os.Stdout, "Single:  %s\n", flags.single)
+			_, _ = fmt.Fprintf(os.Stdout, "Single:  %s\n", flags.single)
 		}
-		fmt.Fprintf(os.Stdout, "Max concurrent: %d\n", flags.max)
+		_, _ = fmt.Fprintf(os.Stdout, "Max concurrent: %d\n", flags.max)
 		repoLabel := flags.repo
 		if repoLabel == "" {
 			repoLabel = "Any"
 		}
-		fmt.Fprintf(os.Stdout, "Repo: %s\n", repoLabel)
-		fmt.Fprintf(os.Stdout, "Dry run: %v\n\n", flags.dryRun)
+		_, _ = fmt.Fprintf(os.Stdout, "Repo: %s\n", repoLabel)
+		_, _ = fmt.Fprintf(os.Stdout, "Dry run: %v\n\n", flags.dryRun)
 	}
 
 	// Check if config.yaml is present and list allowed projects.
@@ -160,11 +160,11 @@ func runOrchestrator(_ *cobra.Command, flags *orchestratorFlags) error {
 
 	// Print summary.
 	if !flags.quiet {
-		fmt.Fprintf(os.Stdout, "\n")
+		_, _ = fmt.Fprintf(os.Stdout, "\n")
 		if flags.dryRun {
-			fmt.Fprintf(os.Stdout, "[DRY RUN] Would dispatch %d issue(s):\n", len(result.Dispatched))
+			_, _ = fmt.Fprintf(os.Stdout, "[DRY RUN] Would dispatch %d issue(s):\n", len(result.Dispatched))
 		} else {
-			fmt.Fprintf(os.Stdout, "Dispatched %d agent(s):\n", len(result.Dispatched))
+			_, _ = fmt.Fprintf(os.Stdout, "Dispatched %d agent(s):\n", len(result.Dispatched))
 		}
 		for _, d := range result.Dispatched {
 			statusLabel := string(d.Status)
@@ -172,12 +172,12 @@ func runOrchestrator(_ *cobra.Command, flags *orchestratorFlags) error {
 				dur := d.CompletedAt.Sub(d.StartedAt).Round(time.Second)
 				statusLabel = fmt.Sprintf("completed (%s)", dur)
 			}
-			fmt.Fprintf(os.Stdout, "  %s — %s [%s]\n", d.Identifier, d.Title, statusLabel)
+			_, _ = fmt.Fprintf(os.Stdout, "  %s — %s [%s]\n", d.Identifier, d.Title, statusLabel)
 		}
 		if len(result.Errors) > 0 {
-			fmt.Fprintf(os.Stdout, "\nErrors (%d):\n", len(result.Errors))
+			_, _ = fmt.Fprintf(os.Stdout, "\nErrors (%d):\n", len(result.Errors))
 			for _, e := range result.Errors {
-				fmt.Fprintf(os.Stdout, "  %s\n", e)
+				_, _ = fmt.Fprintf(os.Stdout, "  %s\n", e)
 			}
 		}
 	}

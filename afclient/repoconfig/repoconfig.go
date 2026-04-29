@@ -62,8 +62,6 @@ type RepositoryConfig struct {
 	// AllowedProjects lists the Linear project names this repo handles.
 	// Mutually exclusive with ProjectPaths.
 	AllowedProjects []string `yaml:"allowedProjects,omitempty"`
-	// projectPathsRaw is the raw map before normalization.
-	projectPathsRaw map[string]*projectPathValue
 	// ProjectPaths maps project names to their normalized ProjectConfig.
 	// Populated after Load() — use GetEffectiveAllowedProjects for the list.
 	ProjectPaths map[string]ProjectConfig

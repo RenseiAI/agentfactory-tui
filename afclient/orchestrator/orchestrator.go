@@ -101,8 +101,8 @@ type Config struct {
 	Logger *slog.Logger
 }
 
-// OrchestratorResult summarises a completed orchestrator run.
-type OrchestratorResult struct {
+// Result summarises a completed orchestrator run.
+type Result struct {
 	// Dispatched is the list of agents that were dispatched (or would have been
 	// dispatched in dry-run mode).
 	Dispatched []*AgentDispatch
@@ -322,7 +322,7 @@ func NewForTest(cfg Config, lin linear.Linear) (*Orchestrator, error) {
 //  2. Apply project allowlist and --max cap.
 //  3. Dispatch agents (or log in dry-run mode).
 //  4. Wait for all agents to complete.
-func (o *Orchestrator) Run(ctx context.Context) (*OrchestratorResult, error) {
+func (o *Orchestrator) Run(ctx context.Context) (*Result, error) {
 	// Re-validate git remote before each run (mirrors TS behaviour).
 	if o.cfg.Repository != "" {
 		if err := ValidateGitRemote(o.cfg.Repository, o.cfg.GitRoot); err != nil {
@@ -330,7 +330,7 @@ func (o *Orchestrator) Run(ctx context.Context) (*OrchestratorResult, error) {
 		}
 	}
 
-	result := &OrchestratorResult{}
+	result := &Result{}
 
 	if o.cfg.Single != "" {
 		return o.runSingle(ctx, result)
@@ -339,7 +339,7 @@ func (o *Orchestrator) Run(ctx context.Context) (*OrchestratorResult, error) {
 }
 
 // runSingle processes exactly one issue identified by cfg.Single.
-func (o *Orchestrator) runSingle(ctx context.Context, result *OrchestratorResult) (*OrchestratorResult, error) {
+func (o *Orchestrator) runSingle(ctx context.Context, result *Result) (*Result, error) {
 	issue, err := o.linClient.GetIssue(ctx, o.cfg.Single)
 	if err != nil {
 		return nil, fmt.Errorf("orchestrator: get issue %s: %w", o.cfg.Single, err)
@@ -376,20 +376,20 @@ func (o *Orchestrator) runSingle(ctx context.Context, result *OrchestratorResult
 
 // runBacklog picks backlog issues and dispatches up to cfg.Max agents
 // concurrently.
-func (o *Orchestrator) runBacklog(ctx context.Context, result *OrchestratorResult) (*OrchestratorResult, error) {
+func (o *Orchestrator) runBacklog(ctx context.Context, result *Result) (*Result, error) {
 	projects, err := o.resolveProjects()
 	if err != nil {
 		return nil, err
 	}
 
-	max := o.cfg.Max
-	if max <= 0 {
-		max = 3
+	maxInt := o.cfg.Max
+	if maxInt <= 0 {
+		maxInt = 3
 	}
 
 	var (
 		mu  sync.Mutex
-		sem = make(chan struct{}, max)
+		sem = make(chan struct{}, maxInt)
 		wg  sync.WaitGroup
 	)
 

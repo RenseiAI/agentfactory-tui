@@ -98,7 +98,7 @@ func initGitRepo(t *testing.T, dir, remoteURL string) {
 		{"init"},
 		{"remote", "add", "origin", remoteURL},
 	} {
-		cmd := exec.Command("git", args...)
+		cmd := exec.Command("git", args...) // #nosec G204 -- test invokes a controlled fake binary
 		cmd.Dir = dir
 		if out, err := cmd.CombinedOutput(); err != nil {
 			t.Fatalf("git %v: %v\n%s", args, err, out)
