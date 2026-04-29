@@ -178,8 +178,8 @@ func TestDaemonInstallHelp(t *testing.T) {
 // subprocess receives the expected arguments.
 func TestDaemonInstallSubprocessInvocation(t *testing.T) {
 	cases := []struct {
-		name    string
-		args    []string
+		name     string
+		args     []string
 		wantArgs []string
 	}{
 		{
@@ -219,7 +219,7 @@ func TestDaemonInstallSubprocessInvocation(t *testing.T) {
 			script := "#!/bin/sh\n" +
 				"for arg in \"$@\"; do echo \"$arg\"; done > '" + argsFile + "'\n" +
 				"exit 0\n"
-			if err := os.WriteFile(fakeBin, []byte(script), 0o755); err != nil {
+			if err := os.WriteFile(fakeBin, []byte(script), 0o500); err != nil {
 				t.Fatalf("write fake binary: %v", err)
 			}
 

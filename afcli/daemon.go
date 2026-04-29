@@ -104,9 +104,9 @@ func newDaemonCmdWithFactory(factory daemonClientFactory) *cobra.Command {
 
 func newDaemonInstallCmd() *cobra.Command {
 	var (
-		binPath    string // macOS launchd: --bin-path overrides the daemon binary location
-		scopeUser  bool   // Linux systemd: --user  (user-scoped unit, default)
-		scopeSystem bool  // Linux systemd: --system (system-scoped unit, requires root)
+		binPath     string // macOS launchd: --bin-path overrides the daemon binary location
+		scopeUser   bool   // Linux systemd: --user  (user-scoped unit, default)
+		scopeSystem bool   // Linux systemd: --system (system-scoped unit, requires root)
 	)
 
 	cmd := &cobra.Command{
