@@ -1122,11 +1122,3 @@ func padRight(s string, w int) string {
 	}
 	return s
 }
-
-// minInt returns the smaller of a and b.
-func minInt(a, b int) int {
-	if a < b {
-		return a
-	}
-	return b
-}
