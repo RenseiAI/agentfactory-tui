@@ -136,7 +136,7 @@ func fixtureActionResp() *afclient.DaemonActionResponse {
 //
 // Install/uninstall/doctor used to shell out to a Node `rensei-daemon`
 // subprocess; REN-1406 ports them into Go and dispatches in-process via
-// internal/installer. The tests below pin the in-process integration:
+// installer. The tests below pin the in-process integration:
 // install writes a unit/plist, uninstall removes it, and doctor inspects it.
 
 // TestDaemonInstallHelp verifies the install command exposes the expected
@@ -194,7 +194,7 @@ func TestDaemonInstallInProcessRegistersDaemonRun(t *testing.T) {
 	// is unavailable in the test environment, the install will write the
 	// unit/plist file and then fail when trying to bootstrap/enable. Skip
 	// in that case — we already cover the file-content assertion in the
-	// internal/installer/{launchd,systemd} unit tests with SkipServiceManager.
+	// installer/{launchd,systemd} unit tests with SkipServiceManager.
 	if err := cmd.Execute(); err != nil {
 		t.Skipf("service manager not available in test env: %v", err)
 	}

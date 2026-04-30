@@ -18,7 +18,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/RenseiAI/agentfactory-tui/afclient"
-	"github.com/RenseiAI/agentfactory-tui/internal/installer"
+	"github.com/RenseiAI/agentfactory-tui/installer"
 )
 
 // daemonDoer is the interface used by daemon subcommands. It is satisfied by

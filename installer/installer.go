@@ -1,20 +1,22 @@
 // Package installer provides the OS-aware daemon-installer dispatcher.
 //
-// On macOS, calls flow through internal/installer/launchd. On Linux, calls
-// flow through internal/installer/systemd. The host binary's `daemon run`
-// subcommand is what gets registered as the service entrypoint (locked
-// REN-1406 decision — no separate rensei-daemon binary).
+// On macOS, calls flow through installer/launchd. On Linux, calls flow
+// through installer/systemd. The host binary's `daemon run` subcommand is
+// what gets registered as the service entrypoint (locked REN-1406
+// decision — no separate rensei-daemon binary).
 //
 // This package is the single import surface for `af daemon install`,
-// `rensei daemon install`, etc.
+// `rensei daemon install`, etc. It is exported so downstream binaries
+// (rensei-tui, etc.) can drive the same in-process install flow without
+// reimplementing it.
 package installer
 
 import (
 	"fmt"
 	"runtime"
 
-	"github.com/RenseiAI/agentfactory-tui/internal/installer/launchd"
-	"github.com/RenseiAI/agentfactory-tui/internal/installer/systemd"
+	"github.com/RenseiAI/agentfactory-tui/installer/launchd"
+	"github.com/RenseiAI/agentfactory-tui/installer/systemd"
 )
 
 // Scope mirrors systemd.Scope for callers that want to set the systemd
